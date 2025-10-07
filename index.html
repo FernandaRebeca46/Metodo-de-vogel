@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Método de Aproximación de Vogel 🌸</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600&display=swap');
+
+body {
+  font-family: 'Quicksand', sans-serif;
+  background: linear-gradient(135deg, #ffe9ec 0%, #e0f7fa 100%);
+  margin: 0;
+  padding: 0;
+}
+
+.container {
+  background: #fffafc;
+  margin: 30px;
+  padding: 25px 30px;
+  border-radius: 25px;
+  box-shadow: 0 10px 25px rgba(255,182,193,0.25);
+  max-width: 1200px;
+}
+
+h1 { text-align:center; color:#ff80ab; margin-bottom:20px; font-weight:600; }
+
+label { font-weight:600; color:#7e57c2; }
+
+input, button {
+  font-family: inherit; padding:10px 15px; margin:5px;
+  border-radius:12px; border:2px solid #f8bbd0; outline:none;
+}
+
+input:focus { border-color:#ba68c8; box-shadow:0 0 8px rgba(186,104,200,0.4); }
+
+button {
+  background:#f48fb1; color:white; font-weight:600; border:none;
+  cursor:pointer; transition:0.3s; border-radius:20px;
+}
+
+button:hover { background:#f06292; transform:scale(1.05); box-shadow:0 6px 15px rgba(240,98,146,0.4); }
+
+.tabla-con-fuente { display:flex; align-items:flex-start; overflow-x:auto; margin-top:20px; }
+
+.fuente-vertical {
+  display:flex; flex-direction:column; font-weight:700; color:#ff80ab;
+  font-size:1.1em; margin-right:10px; line-height:1.3em;
+}
+
+.matriz, .tabla {
+  border-collapse: collapse;
+  border-radius: 15px;
+  overflow: hidden;
+  box-shadow: 0 5px 15px rgba(186,104,200,0.2);
+}
+
+.matriz th, .matriz td, .tabla th, .tabla td {
+  border:1px solid #f8bbd0; text-align:center; position:relative;
+  padding: 8px;
+}
+
+.matriz th { background:#ba68c8; color:white; padding:10px; }
+
+.celda { 
+  position:relative; 
+  width: 80px; 
+  height: 60px; 
+  background:#fff0f5; 
+}
+
+.celda .costo { 
+  position:absolute; 
+  top: 4px; 
+  right: 6px; 
+  font-size: 0.75em; 
+  color: #7b1fa2; 
+  font-weight: 600; 
+  background: #f3e5f5;
+  padding: 1px 4px;
+  border-radius: 4px;
+}
+
+.celda .asignacion { 
+  position:absolute; 
+  top: 50%; 
+  left: 50%; 
+  transform:translate(-50%, -50%); 
+  font-size: 1.1em; 
+  color: #ec407a; 
+  font-weight: bold; 
+}
+
+.penalizaciones { 
+  background:#f3e5f5; 
+  font-size:0.9em; 
+  font-weight:600; 
+  color:#8e24aa; 
+  border-radius:6px; 
+  padding:2px 4px; 
+  display:inline-block; 
+  margin-top:2px; 
+}
+
+.resultado-final { 
+  margin-top:20px; 
+  padding:15px; 
+  background:#e1bee7; 
+  border-radius:15px; 
+  font-size:1.2em; 
+  font-weight:600; 
+  color:#6a1b9a; 
+  text-align:center; 
+}
+
+.paso { 
+  margin-bottom:25px; 
+  border-top:2px dashed #f8bbd0; 
+  padding-top:15px; 
+}
+
+.paso h3 { color:#ab47bc; }
+
+.highlight { 
+  background-color: #fff59d !important; 
+  border: 2px solid #ff9800 !important; 
+}
+
+.paso-info { 
+  background: #f3e5f5; 
+  padding: 10px; 
+  border-radius: 10px; 
+  margin-bottom: 10px; 
+}
+
+.input-celda {
+  width: 50px !important;
+  height: 30px;
+  text-align: center;
+  border: 1px solid #ba68c8;
+  border-radius: 4px;
+}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>🌸 Método de Aproximación de Vogel 🌸</h1>
+
+<div>
+<label for="filas">Número de filas:</label>
+<input type="number" id="filas" min="2" value="3">
+<label for="columnas">Número de columnas:</label>
+<input type="number" id="columnas" min="2" value="4">
+<button onclick="crearEstructura()">Crear Estructura</button>
+</div>
+
+<div id="estructura"></div>
+<div id="resultado"></div>
+</div>
+
+<script>
+let problema = {};
+
+function crearEstructura() {
+  const filas = parseInt(document.getElementById('filas').value);
+  const columnas = parseInt(document.getElementById('columnas').value);
+  problema.filas = filas;
+  problema.columnas = columnas;
+
+  let html = '<div class="tabla-con-fuente"><div class="fuente-vertical">';
+  const palabra = 'FUENTE';
+  for (let i = 0; i < palabra.length; i++) html += palabra[i] + '<br>';
+  html += '</div><table class="matriz"><tr><th></th>';
+  for (let j = 0; j < columnas; j++) html += `<th>D${j + 1}</th>`;
+  html += '<th>Oferta</th></tr>';
+
+  for (let i = 0; i < filas; i++) {
+    html += `<tr><th>F${i + 1}</th>`;
+    for (let j = 0; j < columnas; j++) {
+      html += `<td class="celda">
+        <input type="number" id="c_${i}_${j}" class="input-celda" placeholder="0">
+      </td>`;
+    }
+    html += `<td><input type="number" id="oferta_${i}" style="width:70px" placeholder="0"></td></tr>`;
+  }
+
+  html += '<tr><th>Demanda</th>';
+  for (let j = 0; j < columnas; j++) {
+    html += `<td><input type="number" id="demanda_${j}" style="width:70px" placeholder="0"></td>`;
+  }
+  html += '<td></td></tr></table></div>';
+  html += '<button onclick="resolver()">Resolver Vogel</button>';
+  document.getElementById('estructura').innerHTML = html;
+  document.getElementById('resultado').innerHTML = '';
+}
+
+function resolver() {
+  const filas = problema.filas;
+  const columnas = problema.columnas;
+  
+  // Leer datos
+  let oferta = [], demanda = [], costos = [];
+  for (let i = 0; i < filas; i++) {
+    oferta.push(parseInt(document.getElementById(`oferta_${i}`).value) || 0);
+    costos[i] = [];
+    for (let j = 0; j < columnas; j++) {
+      costos[i][j] = parseInt(document.getElementById(`c_${i}_${j}`).value) || 0;
+    }
+  }
+  for (let j = 0; j < columnas; j++) {
+    demanda.push(parseInt(document.getElementById(`demanda_${j}`).value) || 0);
+  }
+
+  // Verificar balance
+  const totalOferta = oferta.reduce((a, b) => a + b, 0);
+  const totalDemanda = demanda.reduce((a, b) => a + b, 0);
+  
+  if (totalOferta !== totalDemanda) {
+    alert(`⚠️ El problema no está balanceado!\nOferta total: ${totalOferta}\nDemanda total: ${totalDemanda}`);
+    return;
+  }
+
+  problema.oferta = [...oferta];
+  problema.demanda = [...demanda];
+  problema.costos = costos;
+  problema.asignacion = Array.from({ length: filas }, () => Array(columnas).fill(0));
+
+  let pasos = [];
+  let ofertaTemp = [...oferta];
+  let demandaTemp = [...demanda];
+  let paso = 1;
+
+  while (ofertaTemp.some(o => o > 0) && demandaTemp.some(d => d > 0)) {
+    // Calcular penalizaciones para filas (CORREGIDO)
+    let penalFilas = Array(filas).fill(-1);
+    for (let i = 0; i < filas; i++) {
+      if (ofertaTemp[i] > 0) {
+        let costosValidos = [];
+        for (let j = 0; j < columnas; j++) {
+          if (demandaTemp[j] > 0) {
+            costosValidos.push(costos[i][j]);
+          }
+        }
+        if (costosValidos.length >= 2) {
+          costosValidos.sort((a, b) => a - b);
+          penalFilas[i] = costosValidos[1] - costosValidos[0];
+        } else if (costosValidos.length === 1) {
+          penalFilas[i] = costosValidos[0];
+        } else {
+          penalFilas[i] = -1;
+        }
+      }
+    }
+
+    // Calcular penalizaciones para columnas (CORREGIDO)
+    let penalCols = Array(columnas).fill(-1);
+    for (let j = 0; j < columnas; j++) {
+      if (demandaTemp[j] > 0) {
+        let costosValidos = [];
+        for (let i = 0; i < filas; i++) {
+          if (ofertaTemp[i] > 0) {
+            costosValidos.push(costos[i][j]);
+          }
+        }
+        if (costosValidos.length >= 2) {
+          costosValidos.sort((a, b) => a - b);
+          penalCols[j] = costosValidos[1] - costosValidos[0];
+        } else if (costosValidos.length === 1) {
+          penalCols[j] = costosValidos[0];
+        } else {
+          penalCols[j] = -1;
+        }
+      }
+    }
+
+    // Encontrar máxima penalización (CORREGIDO)
+    let maxPenalFila = Math.max(...penalFilas.filter(p => p >= 0));
+    let maxPenalCol = Math.max(...penalCols.filter(p => p >= 0));
+    
+    let iSel = -1, jSel = -1;
+
+    // Si no hay penalizaciones válidas, buscar cualquier celda disponible
+    if (maxPenalFila === -Infinity && maxPenalCol === -Infinity) {
+      for (let i = 0; i < filas; i++) {
+        for (let j = 0; j < columnas; j++) {
+          if (ofertaTemp[i] > 0 && demandaTemp[j] > 0) {
+            iSel = i;
+            jSel = j;
+            break;
+          }
+        }
+        if (iSel !== -1) break;
+      }
+    } else if (maxPenalFila >= maxPenalCol) {
+      // Buscar en filas con máxima penalización (CORREGIDO)
+      let menorCosto = Infinity;
+      for (let i = 0; i < filas; i++) {
+        if (penalFilas[i] === maxPenalFila && ofertaTemp[i] > 0) {
+          for (let j = 0; j < columnas; j++) {
+            if (demandaTemp[j] > 0 && costos[i][j] < menorCosto) {
+              menorCosto = costos[i][j];
+              iSel = i;
+              jSel = j;
+            }
+          }
+        }
+      }
+    } else {
+      // Buscar en columnas con máxima penalización (CORREGIDO)
+      let menorCosto = Infinity;
+      for (let j = 0; j < columnas; j++) {
+        if (penalCols[j] === maxPenalCol && demandaTemp[j] > 0) {
+          for (let i = 0; i < filas; i++) {
+            if (ofertaTemp[i] > 0 && costos[i][j] < menorCosto) {
+              menorCosto = costos[i][j];
+              iSel = i;
+              jSel = j;
+            }
+          }
+        }
+      }
+    }
+
+    if (iSel === -1 || jSel === -1) break;
+
+    // Realizar asignación
+    let asignado = Math.min(ofertaTemp[iSel], demandaTemp[jSel]);
+    problema.asignacion[iSel][jSel] += asignado;
+    ofertaTemp[iSel] -= asignado;
+    demandaTemp[jSel] -= asignado;
+
+    pasos.push({
+      paso: paso++,
+      penalFilas: [...penalFilas],
+      penalCols: [...penalCols],
+      oferta: [...ofertaTemp],
+      demanda: [...demandaTemp],
+      asignacion: JSON.parse(JSON.stringify(problema.asignacion)),
+      celdaSeleccionada: { i: iSel, j: jSel },
+      asignado: asignado,
+      maxPenalFila: maxPenalFila !== -Infinity ? maxPenalFila : 'N/A',
+      maxPenalCol: maxPenalCol !== -Infinity ? maxPenalCol : 'N/A'
+    });
+  }
+
+  // Calcular costo total
+  let totalCosto = 0;
+  for (let i = 0; i < filas; i++) {
+    for (let j = 0; j < columnas; j++) {
+      totalCosto += problema.asignacion[i][j] * costos[i][j];
+    }
+  }
+
+  mostrarPasos(pasos, totalCosto);
+}
+
+function mostrarPasos(pasos, totalCosto) {
+  let html = '';
+  
+  pasos.forEach((p, idx) => {
+    html += `<div class="paso">`;
+    html += `<div class="paso-info">`;
+    html += `<h3>✨ Paso ${p.paso}</h3>`;
+    html += `<p>📌 Máxima penalización: Filas=${p.maxPenalFila}, Columnas=${p.maxPenalCol}</p>`;
+    html += `<p>🎯 Celda seleccionada: F${p.celdaSeleccionada.i + 1}→D${p.celdaSeleccionada.j + 1} (Asignado: ${p.asignado})</p>`;
+    html += `</div>`;
+    
+    html += '<table class="tabla"><tr><th></th>';
+    for (let j = 0; j < problema.columnas; j++) html += `<th>D${j + 1}</th>`;
+    html += '<th>Oferta</th><th>Penalización</th></tr>';
+
+    for (let i = 0; i < problema.filas; i++) {
+      let claseFila = i === p.celdaSeleccionada.i ? 'highlight' : '';
+      html += `<tr class="${claseFila}"><th>F${i + 1}</th>`;
+      for (let j = 0; j < problema.columnas; j++) {
+        let claseCelda = (i === p.celdaSeleccionada.i && j === p.celdaSeleccionada.j) ? 'highlight' : '';
+        let val = p.asignacion[i][j] > 0 ? p.asignacion[i][j] : '';
+        html += `<td class="celda ${claseCelda}">
+          <div class="costo">${problema.costos[i][j]}</div>
+          <div class="asignacion">${val}</div>
+        </td>`;
+      }
+      html += `<td>${p.oferta[i]}</td><td>${p.penalFilas[i] >= 0 ? '<span class="penalizaciones">' + p.penalFilas[i] + '</span>' : '--'}</td></tr>`;
+    }
+
+    html += '<tr><th>Demanda</th>';
+    for (let j = 0; j < problema.columnas; j++) {
+      let claseCol = j === p.celdaSeleccionada.j ? 'highlight' : '';
+      html += `<td class="${claseCol}">${p.demanda[j]}</td>`;
+    }
+    html += '<td></td><td></td></tr>';
+
+    html += '<tr><th>Penalización</th>';
+    for (let j = 0; j < problema.columnas; j++) {
+      html += `<td>${p.penalCols[j] >= 0 ? '<span class="penalizaciones">' + p.penalCols[j] + '</span>' : '--'}</td>`;
+    }
+    html += '<td></td><td></td></tr>';
+
+    html += '</table></div>';
+  });
+
+  // Mostrar solución final
+  html += `<div class="paso">`;
+  html += `<h3>🎯 Solución Final</h3>`;
+  html += '<table class="tabla"><tr><th></th>';
+  for (let j = 0; j < problema.columnas; j++) html += `<th>D${j + 1}</th>`;
+  html += '<th>Oferta</th></tr>';
+
+  for (let i = 0; i < problema.filas; i++) {
+    html += `<tr><th>F${i + 1}</th>`;
+    for (let j = 0; j < problema.columnas; j++) {
+      let val = problema.asignacion[i][j] > 0 ? problema.asignacion[i][j] : '';
+      html += `<td class="celda">
+        <div class="costo">${problema.costos[i][j]}</div>
+        <div class="asignacion">${val}</div>
+      </td>`;
+    }
+    html += `<td>${problema.oferta[i]}</td></tr>`;
+  }
+
+  html += '<tr><th>Demanda</th>';
+  for (let j = 0; j < problema.columnas; j++) html += `<td>${problema.demanda[j]}</td>`;
+  html += '<td></td></tr></table></div>';
+
+  html += `<div class="resultado-final">💖 Costo Total: ${totalCosto}</div>`;
+  document.getElementById('resultado').innerHTML = html;
+}
+
+// Crear estructura inicial
+window.onload = function() {
+  crearEstructura();
+};
+</script>
+</body>
+</html>
